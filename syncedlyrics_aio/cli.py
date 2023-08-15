@@ -1,7 +1,7 @@
 import argparse
 import logging
 import asyncio
-from syncedlyrics import search
+from syncedlyrics_aio import search
 
 
 def cli_handler():

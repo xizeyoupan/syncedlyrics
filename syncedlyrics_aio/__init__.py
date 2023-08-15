@@ -10,7 +10,7 @@ lrc_text = syncedlyrics.search("[TRACK_NAME] [ARTIST_NAME]")
 import asyncio
 from typing import Optional, List
 import logging
-from .providers import NetEase, Megalobiz, Musixmatch
+from .providers import NetEase, Megalobiz, Musixmatch, Lrclib
 from .utils import is_lrc_valid, save_lrc_file
 
 logger = logging.getLogger(__name__)
@@ -48,7 +48,7 @@ async def search(
     - `duration`: The duration of track in ms. Set below 0 if unknow
     - `max_deviation`: Max deviation for a subtitle length in ms, enable if duration is positive
     """
-    _providers = [Musixmatch(), NetEase(), Megalobiz()]
+    _providers = [Musixmatch(), NetEase(), Megalobiz(), Lrclib()]
     if providers:
         # Filtering the providers
         _providers = [
@@ -62,6 +62,7 @@ async def search(
     await _providers[0].session.close()
 
     results = [_ for _ in results if _]
+    results = [_ for _ in results if _[0]]
 
     if results:
         lrc = sorted(results, key=lambda x: x[1], reverse=True)[0][0]

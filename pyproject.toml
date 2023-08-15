@@ -1,9 +1,9 @@
 [tool.poetry]
-name = "syncedlyrics"
-version = "0.5.0"
-description = "Get an LRC format (synchronized) lyrics for your music"
-repository = "https://github.com/rtcq/syncedlyrics"
-urls = { "Bug Tracker" = "https://github.com/rtcq/syncedlyrics/issues" }
+name = "syncedlyrics_aio"
+version = "0.5.1"
+description = "Get an LRC format (synchronized) lyrics for your music with aiohttp"
+repository = "https://github.com/xizeyoupan/syncedlyrics_aio"
+urls = { "Bug Tracker" = "https://github.com/xizeyoupan/syncedlyrics_aio/issues" }
 authors = ["Momo <lo3me@proton.me>"]
 license = "MIT"
 readme = "README.md"
@@ -15,7 +15,6 @@ classifiers = [
 
 [tool.poetry.dependencies]
 python = "^3.7"
-requests = "^2.28.1"
 rapidfuzz = "^2.13.2"
 beautifulsoup4 = "^4.11.1"
 aiohttp = "^3.8.5"
@@ -24,7 +23,7 @@ aiohttp = "^3.8.5"
 black = "*"
 
 [tool.poetry.scripts]
-syncedlyrics = "syncedlyrics.cli:cli_handler"
+syncedlyrics_aio = "syncedlyrics_aio.cli:cli_handler"
 
 [tool.poetry.group.dev.dependencies]
 black = "^22.12.0"

@@ -48,7 +48,7 @@ class NetEase(LRCProvider):
                 if duration - max_deviation <= song["duration"] <= duration + max_deviation:
                     target.append([song, partial_ratio(search_term, song["name"])])
         else:
-            target = [[song, partial_ratio(search_term, song["name"])] for song in results]
+            target = [(song, partial_ratio(search_term, song["name"])) for song in results]
 
         if not target:
             return None

@@ -2,7 +2,7 @@
 
 import os
 import asyncio
-from syncedlyrics import search
+from syncedlyrics_aio import search
 
 q = os.getenv("TEST_Q", "bad guy billie eilish")
 t = os.getenv("TEST_T", "-1")
@@ -18,16 +18,17 @@ async def test_netease():
     await _test_provider("NetEase")
 
 
-async def test_lyricsify():
-    await _test_provider("Lyricsify")
-
-
 async def test_megalobiz():
     await _test_provider("Megalobiz")
 
 
 async def test_musixmatch():
     await _test_provider("Musixmatch")
+
+
+async def test_lrclib():
+    await _test_provider("Lrclib")
+
 
 if __name__ == "__main__":
     loop = asyncio.get_event_loop()
