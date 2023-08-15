@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "syncedlyrics_aio"
-version = "0.5.1"
+version = "0.5.2"
 description = "Get an LRC format (synchronized) lyrics for your music with aiohttp"
 repository = "https://github.com/xizeyoupan/syncedlyrics_aio"
 urls = { "Bug Tracker" = "https://github.com/xizeyoupan/syncedlyrics_aio/issues" }
