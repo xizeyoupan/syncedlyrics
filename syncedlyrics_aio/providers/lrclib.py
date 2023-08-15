@@ -37,4 +37,4 @@ class Lrclib(LRCProvider):
         tracks = sorted([(track, partial_ratio(search_term, track["name"])) for track in tracks], key=lambda x: x[1], reverse=True)
 
         _id = str(tracks[0][0]["id"])
-        return (await self.get_lrc_by_id(_id), tracks[0][1])
+        return (await self.get_lrc_by_id(_id), tracks[0][1], 10000)

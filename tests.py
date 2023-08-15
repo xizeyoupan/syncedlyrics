@@ -30,6 +30,10 @@ async def test_lrclib():
     await _test_provider("Lrclib")
 
 
+async def test_tencent():
+    await _test_provider("Tencent")
+
+
 if __name__ == "__main__":
     loop = asyncio.get_event_loop()
-    loop.run_until_complete(test_musixmatch())
+    loop.run_until_complete(test_tencent())

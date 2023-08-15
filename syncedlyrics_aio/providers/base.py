@@ -25,8 +25,9 @@ class LRCProvider:
         """
         raise NotImplementedError
 
-    async def get_lrc(self, search_term: str, duration: int = -1, max_deviation: int = 2000) -> Tuple[Optional[str], int]:
+    async def get_lrc(self, search_term: str, duration: int = -1, max_deviation: int = 2000) -> Tuple[Optional[str], int, int]:
         """
         Returns the synced lyrics of the song in [LRC](https://en.wikipedia.org/wiki/LRC_(file_format)) format if found.
+        (lyrics, ratio, duration_offset)
         """
         raise NotImplementedError

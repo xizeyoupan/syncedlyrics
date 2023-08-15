@@ -14,7 +14,7 @@ class Megalobiz(LRCProvider):
     ROOT_URL = "https://www.megalobiz.com"
     SEARCH_ENDPOINT = ROOT_URL + "/search/all?qry={q}&searchButton.x=0&searchButton.y=0"
 
-    async def get_lrc(self, search_term: str, duration: int = -1, max_deviation: int = 2000) -> Tuple[Optional[str], int]:
+    async def get_lrc(self, search_term: str, duration: int = -1, max_deviation: int = 2000) -> Tuple[Optional[str], int, int]:
         url = self.SEARCH_ENDPOINT.format(q=search_term)
 
         def href_match(h: Optional[str]):
@@ -44,16 +44,17 @@ class Megalobiz(LRCProvider):
                 ms = duration_match(tag["title"])
                 if not ms:
                     continue
-                if duration - max_deviation <= ms <= duration + max_deviation:
-                    reslut.append([tag, rapidfuzz.fuzz.token_sort_ratio(search_term, tag["title"])])
+                offset = abs(duration - ms)
+                if offset <= max_deviation:
+                    reslut.append((tag, rapidfuzz.fuzz.token_sort_ratio(search_term, tag["title"]), offset,))
         else:
-            reslut = [[tag, rapidfuzz.fuzz.token_sort_ratio(search_term, tag["title"])] for tag in a_tag]
+            reslut = [(tag, rapidfuzz.fuzz.token_sort_ratio(search_term, tag["title"]), 0) for tag in a_tag]
 
         if not reslut:
             return None
-        reslut = sorted(reslut, key=lambda x: x[1], reverse=True)[0]
+        reslut = sorted(reslut, key=lambda x: (x[1], -x[2], ), reverse=True)[0]
 
         # Scraping from the LRC page
         lrc_id = reslut[0]["href"].split(".")[-1]
         soup = await generate_bs4_soup(self.session, self.ROOT_URL + reslut[0]["href"])
-        return (soup.find("div", {"id": f"lrc_{lrc_id}_details"}).get_text(), reslut[1])
+        return (soup.find("div", {"id": f"lrc_{lrc_id}_details"}).get_text(), reslut[1], reslut[2])

@@ -32,7 +32,7 @@ class NetEase(LRCProvider):
         super().__init__()
         self.session.headers.update(headers)
 
-    async def search_track(self, search_term: str, duration: int = -1, max_deviation: int = 2000) -> Tuple[Optional[dict], int]:
+    async def search_track(self, search_term: str, duration: int = -1, max_deviation: int = 2000) -> Tuple[Optional[dict], int, int]:
         """Returns a `dict` containing some metadata for the found track."""
         params = {"limit": 20, "type": 1, "offset": 0, "s": search_term}
         response = await self.session.get(self.API_ENDPOINT_METADATA, params=params)
@@ -45,36 +45,33 @@ class NetEase(LRCProvider):
         target = []
         if duration >= 0:
             for song in results:
-                if duration - max_deviation <= song["duration"] <= duration + max_deviation:
-                    target.append([song, partial_ratio(search_term, song["name"])])
+                offset = abs(duration - song["duration"])
+                if offset <= max_deviation:
+                    target.append([song, partial_ratio(search_term, song["name"]), offset])
         else:
-            target = [(song, partial_ratio(search_term, song["name"])) for song in results]
+            target = [(song, partial_ratio(search_term, song["name"]), 0) for song in results]
 
         if not target:
             return None
 
-        target = sorted(target, key=lambda x: x[1], reverse=True)[0]
-        track = target[0]
+        target = sorted(target, key=lambda x: (x[1], -x[2], ), reverse=True)[0]
 
-        # Update the session cookies from the new sent cookies for the next request.
-        self.session.cookie_jar.update_cookies(response.cookies)
-        self.session.headers.update({"referer": str(response.url)})
-        return (track, target[1])
+        return target
 
     async def get_lrc_by_id(self, track_id: str) -> Optional[str]:
         params = {"id": track_id, "lv": -1, "tv": -1}
         response = await self.session.get(self.API_ENDPOINT_LYRICS, params=params)
         text = await response.text()
         _json = json.loads(text)
-        lrc = _json.get("lrc", {}).get("lyric")
-        tlyric = _json.get("tlyric", {}).get("lyric")
+        lrc = _json.get("lrc", {}).get("lyric") or ''
+        tlyric = _json.get("tlyric", {}).get("lyric") or ''
         lrc = format_lyrics(lrc, tlyric)
         if not lrc:
             return
         return lrc
 
-    async def get_lrc(self, search_term: str, duration: int = -1, max_deviation: int = 2000) -> Tuple[Optional[str], int]:
+    async def get_lrc(self, search_term: str, duration: int = -1, max_deviation: int = 2000) -> Tuple[Optional[str], int, int]:
         track = await self.search_track(search_term, duration, max_deviation)
         if not track:
             return
-        return (await self.get_lrc_by_id(track[0]["id"]), track[1])
+        return (await self.get_lrc_by_id(track[0]["id"]), track[1], track[2])

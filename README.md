@@ -41,6 +41,7 @@ syncedlyrics_aio.search("...", allow_plain_format=True, save_path="{search_term}
 - [Musixmatch](https://www.musixmatch.com/)
 - [NetEase](https://music.163.com/)
 - [Megalobiz](https://www.megalobiz.com/)
+- [Tencent](https://y.qq.com/)
 - ~~[Lyricsify](https://www.lyricsify.com/)~~ (Broken, should bypass Cloudflare protection)
 - ~~[Deezer](https://deezer.com/)~~ (Broken)
 

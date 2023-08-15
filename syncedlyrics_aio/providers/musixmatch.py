@@ -98,4 +98,4 @@ class Musixmatch(LRCProvider):
         tracks = sorted([(track, partial_ratio(search_term, track["track"]["track_name"])) for track in tracks], key=lambda x: x[1], reverse=True)
         if not tracks:
             return None
-        return (await self.get_lrc_by_id(tracks[0][0]["track"]["track_id"]), tracks[0][1])
+        return (await self.get_lrc_by_id(tracks[0][0]["track"]["track_id"]), tracks[0][1], 10000)
