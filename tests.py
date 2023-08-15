@@ -1,22 +1,34 @@
 """Some simple tests for geting notifed for API changes of the providers"""
 
 import os
+import asyncio
 from syncedlyrics import search
 
 q = os.getenv("TEST_Q", "bad guy billie eilish")
+t = os.getenv("TEST_T", "-1")
 
-def _test_provider(provider: str):
-	lrc = search(q, allow_plain_format=True, providers=[provider])
-	assert isinstance(lrc, (str, type(None)))
 
-def test_netease():
-	_test_provider("NetEase")
+async def _test_provider(provider: str):
+    lrc = await search(q, allow_plain_format=True, duration=int(t), providers=[provider])
+    print(lrc)
+    assert isinstance(lrc, (str, type(None)))
 
-def test_lyricsify():
-	_test_provider("Lyricsify")
 
-def test_megalobiz():
-	_test_provider("Megalobiz")
-	
-def test_musixmatch():
-	_test_provider("Musixmatch")
+async def test_netease():
+    await _test_provider("NetEase")
+
+
+async def test_lyricsify():
+    await _test_provider("Lyricsify")
+
+
+async def test_megalobiz():
+    await _test_provider("Megalobiz")
+
+
+async def test_musixmatch():
+    await _test_provider("Musixmatch")
+
+if __name__ == "__main__":
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(test_musixmatch())

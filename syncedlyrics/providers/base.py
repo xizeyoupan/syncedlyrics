@@ -1,5 +1,5 @@
-import requests
-from typing import Optional
+import aiohttp
+from typing import Optional, Tuple
 
 
 class LRCProvider:
@@ -7,7 +7,7 @@ class LRCProvider:
     Base class for all of the synced (LRC format) lyrics providers.
     """
 
-    session = requests.Session()
+    session = aiohttp.ClientSession()
 
     def __init__(self) -> None:
         self.session.headers.update(
@@ -16,7 +16,7 @@ class LRCProvider:
             }
         )
 
-    def get_lrc_by_id(self, track_id: str) -> Optional[str]:
+    async def get_lrc_by_id(self, track_id: str) -> Optional[str]:
         """
         Returns the synced lyrics of the song in [LRC](https://en.wikipedia.org/wiki/LRC_(file_format)) format if found.
 
@@ -25,7 +25,7 @@ class LRCProvider:
         """
         raise NotImplementedError
 
-    def get_lrc(self, search_term: str) -> Optional[str]:
+    async def get_lrc(self, search_term: str, duration: int = -1, max_deviation: int = 2000) -> Tuple[Optional[str], int]:
         """
         Returns the synced lyrics of the song in [LRC](https://en.wikipedia.org/wiki/LRC_(file_format)) format if found.
         """

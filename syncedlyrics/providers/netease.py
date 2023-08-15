@@ -1,8 +1,10 @@
 """NetEase (music.163.com) china-based provider"""
 
-from typing import Optional
+from typing import Optional, Tuple
+import json
 from rapidfuzz.fuzz import partial_ratio
 from .base import LRCProvider
+from ..utils import format_lyrics
 
 headers = {
     "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
@@ -30,32 +32,49 @@ class NetEase(LRCProvider):
         super().__init__()
         self.session.headers.update(headers)
 
-    def search_track(self, search_term: str) -> Optional[dict]:
+    async def search_track(self, search_term: str, duration: int = -1, max_deviation: int = 2000) -> Tuple[Optional[dict], int]:
         """Returns a `dict` containing some metadata for the found track."""
-        params = {"limit": 10, "type": 1, "offset": 0, "s": search_term}
-        response = self.session.get(self.API_ENDPOINT_METADATA, params=params)
-        results = response.json().get("result", {}).get("songs")
+        params = {"limit": 20, "type": 1, "offset": 0, "s": search_term}
+        response = await self.session.get(self.API_ENDPOINT_METADATA, params=params)
+        text = await response.text()
+        _json = json.loads(text)
+        results = _json.get("result", {}).get("songs")
         if not results:
             return
-        track = results[0]
-        track_name = f"{track.get('name')} {track.get('artists')[0].get('name')}"
-        if partial_ratio(search_term, track_name) < 70:
-            return
-        # Update the session cookies from the new sent cookies for the next request.
-        self.session.cookies.update(response.cookies)
-        self.session.headers.update({"referer": response.url})
-        return track
 
-    def get_lrc_by_id(self, track_id: str) -> Optional[str]:
-        params = {"id": track_id, "lv": 1}
-        response = self.session.get(self.API_ENDPOINT_LYRICS, params=params)
-        lrc = response.json().get("lrc", {}).get("lyric")
+        target = []
+        if duration >= 0:
+            for song in results:
+                if duration - max_deviation <= song["duration"] <= duration + max_deviation:
+                    target.append([song, partial_ratio(search_term, song["name"])])
+        else:
+            target = [[song, partial_ratio(search_term, song["name"])] for song in results]
+
+        if not target:
+            return None
+
+        target = sorted(target, key=lambda x: x[1], reverse=True)[0]
+        track = target[0]
+
+        # Update the session cookies from the new sent cookies for the next request.
+        self.session.cookie_jar.update_cookies(response.cookies)
+        self.session.headers.update({"referer": str(response.url)})
+        return (track, target[1])
+
+    async def get_lrc_by_id(self, track_id: str) -> Optional[str]:
+        params = {"id": track_id, "lv": -1, "tv": -1}
+        response = await self.session.get(self.API_ENDPOINT_LYRICS, params=params)
+        text = await response.text()
+        _json = json.loads(text)
+        lrc = _json.get("lrc", {}).get("lyric")
+        tlyric = _json.get("tlyric", {}).get("lyric")
+        lrc = format_lyrics(lrc, tlyric)
         if not lrc:
             return
         return lrc
 
-    def get_lrc(self, search_term: str) -> Optional[str]:
-        track = self.search_track(search_term)
+    async def get_lrc(self, search_term: str, duration: int = -1, max_deviation: int = 2000) -> Tuple[Optional[str], int]:
+        track = await self.search_track(search_term, duration, max_deviation)
         if not track:
             return
-        return self.get_lrc_by_id(track["id"])
+        return (await self.get_lrc_by_id(track[0]["id"]), track[1])
