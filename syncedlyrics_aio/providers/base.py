@@ -1,4 +1,3 @@
-import aiohttp
 from typing import Optional, Tuple
 
 
@@ -7,9 +6,8 @@ class LRCProvider:
     Base class for all of the synced (LRC format) lyrics providers.
     """
 
-    session = aiohttp.ClientSession()
-
-    def __init__(self) -> None:
+    def __init__(self, session) -> None:
+        self.session = session
         self.session.headers.update(
             {
                 "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36"

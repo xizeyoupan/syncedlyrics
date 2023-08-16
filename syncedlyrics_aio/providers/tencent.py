@@ -20,8 +20,8 @@ class Tencent(LRCProvider):
     API_ENDPOINT_METADATA = "https://shc6.y.qq.com/soso/fcgi-bin/search_for_qq_cp"
     API_ENDPOINT_LYRICS = "https://c.y.qq.com/lyric/fcgi-bin/fcg_query_lyric_new.fcg"
 
-    def __init__(self) -> None:
-        super().__init__()
+    def __init__(self, session) -> None:
+        super().__init__(session)
         self.session.headers.update(headers)
 
     async def search_track(self, search_term: str, duration: int = -1, max_deviation: int = 2000) -> Tuple[Optional[dict], int, int]:

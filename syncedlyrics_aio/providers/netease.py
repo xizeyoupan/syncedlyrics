@@ -28,8 +28,8 @@ class NetEase(LRCProvider):
     API_ENDPOINT_METADATA = "https://music.163.com/api/search/pc"
     API_ENDPOINT_LYRICS = "https://music.163.com/api/song/lyric"
 
-    def __init__(self) -> None:
-        super().__init__()
+    def __init__(self, session) -> None:
+        super().__init__(session)
         self.session.headers.update(headers)
 
     async def search_track(self, search_term: str, duration: int = -1, max_deviation: int = 2000) -> Tuple[Optional[dict], int, int]:

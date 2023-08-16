@@ -13,9 +13,6 @@ class Lrclib(LRCProvider):
     SEARCH_ENDPOINT = API_ENDPOINT + "/search"
     LRC_ENDPOINT = API_ENDPOINT + "/get/"
 
-    def __init__(self) -> None:
-        super().__init__()
-
     async def get_lrc_by_id(self, track_id: str) -> Optional[str]:
         url = self.LRC_ENDPOINT + track_id
         r = await self.session.get(url)

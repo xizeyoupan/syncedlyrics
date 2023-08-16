@@ -16,8 +16,8 @@ class Musixmatch(LRCProvider):
 
     ROOT_URL = "https://apic-desktop.musixmatch.com/ws/1.1/"
 
-    def __init__(self) -> None:
-        super().__init__()
+    def __init__(self, session) -> None:
+        super().__init__(session)
         self.token = None
         self.session.headers.update(
             {

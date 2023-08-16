@@ -21,6 +21,7 @@ aiohttp = "^3.8.5"
 
 [tool.poetry.dev-dependencies]
 black = "*"
+pytest-asyncio = "^0.21.1"
 
 [tool.poetry.scripts]
 syncedlyrics_aio = "syncedlyrics_aio.cli:cli_handler"

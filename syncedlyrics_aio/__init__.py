@@ -8,6 +8,7 @@ lrc_text = syncedlyrics.search("[TRACK_NAME] [ARTIST_NAME]")
 """
 
 import asyncio
+import aiohttp
 from typing import Optional, List
 import logging
 from .providers import NetEase, Megalobiz, Musixmatch, Lrclib, Tencent
@@ -48,7 +49,8 @@ async def search(
     - `duration`: The duration of track in ms. Set below 0 if unknow
     - `max_deviation`: Max deviation for a subtitle length in ms, enable if duration is positive
     """
-    _providers = [Musixmatch(), NetEase(), Megalobiz(), Lrclib(), Tencent()]
+    session = aiohttp.ClientSession()
+    _providers = [Musixmatch(session), NetEase(session), Megalobiz(session), Lrclib(session), Tencent(session)]
     if providers:
         # Filtering the providers
         _providers = [
@@ -59,7 +61,7 @@ async def search(
     ]
 
     results = await asyncio.gather(*tasks)
-    await _providers[0].session.close()
+    await session.close()
 
     results = [_ for _ in results if _]
     results = [_ for _ in results if _[0]]
