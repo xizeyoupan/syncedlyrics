@@ -1,7 +1,7 @@
 """Lrclib (lrclib.net) LRC provider"""
 
 from typing import Optional, Tuple
-from rapidfuzz.fuzz import partial_ratio
+from rapidfuzz.fuzz import token_sort_ratio
 from .base import LRCProvider
 
 
@@ -31,7 +31,7 @@ class Lrclib(LRCProvider):
         tracks = await r.json()
         if not tracks:
             return
-        tracks = sorted([(track, partial_ratio(search_term, track["name"])) for track in tracks], key=lambda x: x[1], reverse=True)
+        tracks = sorted([(track, token_sort_ratio(search_term, track["name"])) for track in tracks], key=lambda x: x[1], reverse=True)
 
         _id = str(tracks[0][0]["id"])
         return (await self.get_lrc_by_id(_id), tracks[0][1], 10000)

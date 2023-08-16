@@ -2,7 +2,7 @@
 
 from typing import Optional, Tuple
 import json
-from rapidfuzz.fuzz import partial_ratio
+from rapidfuzz.fuzz import token_sort_ratio
 from .base import LRCProvider
 from ..utils import format_lyrics
 
@@ -47,9 +47,9 @@ class NetEase(LRCProvider):
             for song in results:
                 offset = abs(duration - song["duration"])
                 if offset <= max_deviation:
-                    target.append([song, partial_ratio(search_term, song["name"]), offset])
+                    target.append([song, token_sort_ratio(search_term, song["name"]), offset])
         else:
-            target = [(song, partial_ratio(search_term, song["name"]), 0) for song in results]
+            target = [(song, token_sort_ratio(search_term, song["name"]), 0) for song in results]
 
         if not target:
             return None

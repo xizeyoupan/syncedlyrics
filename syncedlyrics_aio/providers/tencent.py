@@ -5,7 +5,7 @@ import html
 from typing import Optional, Tuple
 import json
 import urllib
-from rapidfuzz.fuzz import partial_ratio
+from rapidfuzz.fuzz import token_sort_ratio
 from .base import LRCProvider
 from ..utils import format_lyrics
 
@@ -46,9 +46,9 @@ class Tencent(LRCProvider):
             for song in results:
                 offset = abs(duration - song["interval"] * 1000)
                 if offset <= max_deviation:
-                    target.append((song, partial_ratio(search_term, song["songname"]), offset))
+                    target.append((song, token_sort_ratio(search_term, song["songname"]), offset))
         else:
-            target = [(song, partial_ratio(search_term, song["songname"]), 0) for song in results]
+            target = [(song, token_sort_ratio(search_term, song["songname"]), 0) for song in results]
 
         if not target:
             return None

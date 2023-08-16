@@ -5,7 +5,7 @@ from typing import List, Optional, Tuple
 from .base import LRCProvider
 import time
 import os
-from rapidfuzz.fuzz import partial_ratio
+from rapidfuzz.fuzz import token_sort_ratio
 
 # Inspired from https://github.com/Marekkon5/onetagger/blob/0654131188c4df2b4b171ded7cdb927a4369746e/crates/onetagger-platforms/src/musixmatch.rs
 # Huge part converted from Rust to Py by ChatGPT :)
@@ -95,7 +95,7 @@ class Musixmatch(LRCProvider):
         body = _json["message"]["body"]
         tracks = body["track_list"]
 
-        tracks = sorted([(track, partial_ratio(search_term, track["track"]["track_name"])) for track in tracks], key=lambda x: x[1], reverse=True)
+        tracks = sorted([(track, token_sort_ratio(search_term, track["track"]["track_name"])) for track in tracks], key=lambda x: x[1], reverse=True)
         if not tracks:
             return None
         return (await self.get_lrc_by_id(tracks[0][0]["track"]["track_id"]), tracks[0][1], 10000)
