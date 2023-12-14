@@ -6,6 +6,7 @@ from .base import LRCProvider
 import time
 import os
 from rapidfuzz.fuzz import token_sort_ratio
+import asyncio
 
 # Inspired from https://github.com/Marekkon5/onetagger/blob/0654131188c4df2b4b171ded7cdb927a4369746e/crates/onetagger-platforms/src/musixmatch.rs
 # Huge part converted from Rust to Py by ChatGPT :)
@@ -54,7 +55,7 @@ class Musixmatch(LRCProvider):
         r = await self._get("token.get", [("user_language", "en")])
         d = json.loads(await r.text())
         if d["message"]["header"]["status_code"] == 401:
-            time.sleep(10)
+            await asyncio.sleep(10)
             return await self._get_token()
         new_token = d["message"]["body"]["user_token"]
         expiration_time = current_time + 600  # 10 minutes expiration
