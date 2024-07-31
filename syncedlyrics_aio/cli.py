@@ -1,6 +1,7 @@
 import argparse
 import logging
-from syncedlyrics import search
+import asyncio
+from syncedlyrics_aio import search
 
 
 def cli_handler():
@@ -16,7 +17,7 @@ def cli_handler():
         "-p",
         help="Providers to include in the searching (separated by space). Default: all providers",
         default="",
-        choices=["musixmatch", "lrclib", "netease", "megalobiz", "genius"],
+        choices=["musixmatch", "lrclib", "netease", "megalobiz", "genius", "tencent"],
         nargs="+",
         type=str.lower,
     )
@@ -44,6 +45,20 @@ def cli_handler():
         help="Returns word by word synced lyrics (if available)",
         action="store_true",
     )
+    parser.add_argument(
+        "-d",
+        "--duration",
+        help="The duration of track in ms. Set to 0 if unknow",
+        type=int,
+        default=0,
+    )
+    parser.add_argument(
+        "-m",
+        "--max_deviation",
+        help="Max deviation of track in ms, enable if duration is set",
+        type=int,
+        default=5000,
+    )
     args = parser.parse_args()
     if args.verbose:
         logging.basicConfig(level=logging.DEBUG)
@@ -57,5 +72,8 @@ def cli_handler():
         lang=args.lang,
         enhanced=args.enhanced,
     )
+
+    loop = asyncio.get_event_loop()
+    lrc = loop.run_until_complete(lrc)
     if lrc:
         print(lrc)

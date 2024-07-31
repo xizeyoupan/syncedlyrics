@@ -23,19 +23,19 @@ class Musixmatch(LRCProvider):
         self.enhanced = enhanced
         self.token = None
 
-    def _get(self, action: str, query: List[tuple]):
+    async def _get(self, action: str, query: List[tuple]):
         if action != "token.get" and self.token is None:
-            self._get_token()
+            await self._get_token()
         query.append(("app_id", "web-desktop-app-v1.0"))
         if self.token is not None:
             query.append(("usertoken", self.token))
         t = str(int(time.time() * 1000))
         query.append(("t", t))
         url = self.ROOT_URL + action
-        response = self.session.get(url, params=query)
+        response = await self.session.get(url, params=query)
         return response
 
-    def _get_token(self):
+    async def _get_token(self):
         token_path = get_cache_path("syncedlyrics", False) / "musixmatch_token.json"
         current_time = int(time.time())
         if token_path.exists():
@@ -47,10 +47,11 @@ class Musixmatch(LRCProvider):
                 self.token = cached_token
                 return
         # Token not cached or expired, fetch a new token
-        d = self._get("token.get", [("user_language", "en")]).json()
+        r = await self._get("token.get", [("user_language", "en")])
+        d = await r.json(content_type="text/plain")
         if d["message"]["header"]["status_code"] == 401:
             time.sleep(10)
-            return self._get_token()
+            return await self._get_token()
         new_token = d["message"]["body"]["user_token"]
         expiration_time = current_time + 600  # 10 minutes expiration
         # Cache the new token
@@ -60,13 +61,13 @@ class Musixmatch(LRCProvider):
         with open(token_path, "w") as token_file:
             json.dump(token_data, token_file)
 
-    def get_lrc_by_id(self, track_id: str) -> Optional[Lyrics]:
-        r = self._get(
+    async def get_lrc_by_id(self, track_id: str) -> Optional[Lyrics]:
+        r = await self._get(
             "track.subtitle.get",
             [("track_id", track_id), ("subtitle_format", "lrc")],
         )
         if self.lang is not None:
-            r_tr = self._get(
+            r_tr = await self._get(
                 "crowd.track.translations.get",
                 [
                     ("track_id", track_id),
@@ -75,12 +76,12 @@ class Musixmatch(LRCProvider):
                     ("selected_language", self.lang),
                 ],
             )
-            body_tr = r_tr.json()["message"]["body"]
+            body_tr = (await r_tr.json(content_type="text/plain"))["message"]["body"]
             if not body_tr["translations_list"]:
                 raise Exception("Couldn't find translations")
         if not r.ok:
             return None
-        body = r.json()["message"]["body"]
+        body = (await r.json(content_type="text/plain"))["message"]["body"]
         if not body:
             return None
         lrc_str = body["subtitle"]["subtitle_body"]
@@ -95,11 +96,19 @@ class Musixmatch(LRCProvider):
         lrc.synced = lrc_str
         return lrc
 
-    def get_lrc_word_by_word(self, track_id: str) -> Optional[Lyrics]:
+    async def get_lrc_word_by_word(self, track_id: str) -> Optional[Lyrics]:
         lrc = Lyrics()
-        r = self._get("track.richsync.get", [("track_id", track_id)])
-        if r.ok and r.json()["message"]["header"]["status_code"] == 200:
-            lrc_raw = r.json()["message"]["body"]["richsync"]["richsync_body"]
+        r = await self._get("track.richsync.get", [("track_id", track_id)])
+        if (
+            r.ok
+            and (await r.json(content_type="text/plain"))["message"]["header"][
+                "status_code"
+            ]
+            == 200
+        ):
+            lrc_raw = (await r.json(content_type="text/plain"))["message"]["body"][
+                "richsync"
+            ]["richsync_body"]
             lrc_raw = json.loads(lrc_raw)
             lrc_str = ""
             for i in lrc_raw:
@@ -111,8 +120,8 @@ class Musixmatch(LRCProvider):
             lrc.synced = lrc_str
         return lrc
 
-    def get_lrc(self, search_term: str) -> Optional[Lyrics]:
-        r = self._get(
+    async def get_lrc(self, search_term: str) -> Optional[Lyrics]:
+        r = await self._get(
             "track.search",
             [
                 ("q", search_term),
@@ -120,11 +129,13 @@ class Musixmatch(LRCProvider):
                 ("page", "1"),
             ],
         )
-        status_code = r.json()["message"]["header"]["status_code"]
+        status_code = (await r.json(content_type="text/plain"))["message"]["header"][
+            "status_code"
+        ]
         if status_code != 200:
             self.logger.warning(f"Got status code {status_code} for {search_term}")
             return None
-        body = r.json()["message"]["body"]
+        body = (await r.json(content_type="text/plain"))["message"]["body"]
         if not isinstance(body, dict):
             return None
         tracks = body["track_list"]
@@ -134,7 +145,7 @@ class Musixmatch(LRCProvider):
             return None
         track_id = track["track"]["track_id"]
         if self.enhanced:
-            lrc = self.get_lrc_word_by_word(track_id)
+            lrc = await self.get_lrc_word_by_word(track_id)
             if lrc and lrc.synced:
                 return lrc
-        return self.get_lrc_by_id(track_id)
+        return await self.get_lrc_by_id(track_id)

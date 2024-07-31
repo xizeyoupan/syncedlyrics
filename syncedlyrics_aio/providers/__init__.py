@@ -7,3 +7,4 @@ from .megalobiz import Megalobiz
 from .musixmatch import Musixmatch
 from .lrclib import Lrclib
 from .genius import Genius
+from .tencent import Tencent

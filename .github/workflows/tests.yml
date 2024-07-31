@@ -1,18 +1,18 @@
 name: Tests
 
 on:
-  schedule:
-    - cron: "26 5 * * *" # Every day, 05:26 UTC
-  push:
-    branches:
-      - main
-    paths:
-      - "syncedlyrics/**"
-  pull_request:
-    branches:
-      - main
-    paths:
-      - "syncedlyrics/**"
+  # schedule:
+  #   - cron: "26 5 * * *" # Every day, 05:26 UTC
+  # push:
+  #   branches:
+  #     - main
+  #   paths:
+  #     - "syncedlyrics/**"
+  # pull_request:
+  #   branches:
+  #     - main
+  #   paths:
+  #     - "syncedlyrics/**"
   workflow_dispatch:
 
 jobs:
@@ -39,4 +39,4 @@ jobs:
           poetry install
 
       - name: Running provider tests
-        run: poetry run python -m pytest -k "not genius and not netease" --durations=0 -vv -s --log-cli-level=DEBUG tests.py
+        run: poetry run python -m pytest --durations=0 -vv -s --log-cli-level=DEBUG tests.py

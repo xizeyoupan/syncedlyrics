@@ -12,7 +12,7 @@ class Megalobiz(LRCProvider):
     ROOT_URL = "https://www.megalobiz.com"
     SEARCH_ENDPOINT = ROOT_URL + "/search/all?qry={q}&searchButton.x=0&searchButton.y=0"
 
-    def get_lrc(self, search_term: str) -> Optional[Lyrics]:
+    async def get_lrc(self, search_term: str) -> Optional[Lyrics]:
         url = self.SEARCH_ENDPOINT.format(q=search_term.replace(" ", "+"))
 
         def href_match(h: Optional[str]):
@@ -21,7 +21,7 @@ class Megalobiz(LRCProvider):
             return False
 
         a_tags_boud = SoupStrainer("a", href=href_match)
-        soup = generate_bs4_soup(self.session, url, parse_only=a_tags_boud)
+        soup = await generate_bs4_soup(self.session, url, parse_only=a_tags_boud)
 
         def a_text(a):
             # In MegaLobiz, we have some `a` tags that have the following text:

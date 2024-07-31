@@ -1,7 +1,7 @@
 [tool.poetry]
-name = "syncedlyrics"
-version = "1.0.1"
-description = "Get an LRC format (synchronized) lyrics for your music"
+name = "syncedlyrics_aio"
+version = "1.0.1.1"
+description = "Get an LRC format (synchronized) lyrics for your music with aiohttp support"
 repository = "https://github.com/rtcq/syncedlyrics"
 urls = { "Bug Tracker" = "https://github.com/rtcq/syncedlyrics/issues" }
 authors = ["Momo <lo3me@proton.me>"]
@@ -15,16 +15,23 @@ classifiers = [
 
 [tool.poetry.dependencies]
 python = ">=3.8"
-requests = "^2.31.0"
 beautifulsoup4 = "^4.12.3"
 rapidfuzz = "^3.6.2"
+aiohttp = "^3.8.5"
+
+[tool.poetry.dev-dependencies]
+black = "*"
 
 [tool.poetry.scripts]
-syncedlyrics = "syncedlyrics.cli:cli_handler"
+syncedlyrics_aio  = "syncedlyrics_aio.cli:cli_handler"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.0.2"
 black = "^24.4.2"
+pytest-asyncio = "^0.23.8"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
 
 [build-system]
 requires = ["poetry-core"]

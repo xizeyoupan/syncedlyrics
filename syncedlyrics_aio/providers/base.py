@@ -1,11 +1,11 @@
-import requests
-from typing import Optional
+import aiohttp
+from typing import Optional, Tuple
 import logging
-
+import asyncio
 from ..utils import Lyrics
 
 
-class TimeoutSession(requests.Session):
+class TimeoutSession(aiohttp.ClientSession):
     def request(self, method, url, **kwargs):
         kwargs.setdefault("timeout", (2, 10))
         return super().request(method, url, **kwargs)
@@ -29,7 +29,7 @@ class LRCProvider:
     def __str__(self) -> str:
         return self.__class__.__name__
 
-    def get_lrc_by_id(self, track_id: str) -> Optional[Lyrics]:
+    async def get_lrc_by_id(self, track_id: str) -> Optional[str]:
         """
         Returns the synced lyrics of the song in [LRC](https://en.wikipedia.org/wiki/LRC_(file_format)) format if found.
 
@@ -38,8 +38,12 @@ class LRCProvider:
         """
         raise NotImplementedError
 
-    def get_lrc(self, search_term: str) -> Optional[Lyrics]:
+    async def get_lrc(self, search_term: str) -> Tuple[Optional[Lyrics]]:
         """
         Returns the synced lyrics of the song in [LRC](https://en.wikipedia.org/wiki/LRC_(file_format)) format if found.
         """
         raise NotImplementedError
+
+    def __del__(self):
+        loop = asyncio.get_event_loop()
+        loop.create_task(self.session.close())

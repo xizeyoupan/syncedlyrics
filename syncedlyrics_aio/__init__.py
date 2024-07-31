@@ -2,22 +2,27 @@
 Search for an LRC format (synchronized lyrics) of a music.
 
 ```py
-import syncedlyrics
-lrc_text = syncedlyrics.search("[TRACK_NAME] [ARTIST_NAME]")
+import syncedlyrics_aio
+
+loop = asyncio.get_event_loop()
+lrc = loop.run_until_complete(syncedlyrics_aio.search("[TRACK_NAME] [ARTIST_NAME]"))
+if lrc:
+    print(lrc)
 ```
 """
 
+import asyncio
+from typing import Optional, List
+import traceback
 import logging
-from typing import List, Optional
-
-from .providers import Deezer, Lrclib, Musixmatch, NetEase, Megalobiz, Genius
+from .providers import Deezer, Lrclib, Musixmatch, NetEase, Megalobiz, Genius, Tencent
 from .utils import Lyrics, TargetType
 from .providers.base import LRCProvider
 
 logger = logging.getLogger(__name__)
 
 
-def search(
+async def search(
     search_term: str,
     plain_only: bool = False,
     synced_only: bool = False,
@@ -25,6 +30,8 @@ def search(
     providers: List[str] = [],
     lang: Optional[str] = None,
     enhanced: bool = False,
+    duration: int = 0,
+    max_deviation: int = 5000,
 ) -> Optional[str]:
     """
     Returns the synced lyrics of the song in [LRC](https://en.wikipedia.org/wiki/LRC_(file_format)) format if found.
@@ -36,6 +43,8 @@ def search(
     - `providers`: A list of provider names to include in searching; loops over all the providers as soon as an LRC is found
     - `lang`: Language of the translation along with the lyrics. **Only supported by Musixmatch**
     - `enhanced`: Returns word by word synced lyrics if available. **Only supported by Musixmatch**
+    - `duration`: The duration of track in ms, if the provider supports. Keep default if unknow
+    - `max_deviation`: Max deviation of track in ms, enable if duration is set, defalut is 2000
     """
     if plain_only and synced_only:
         logger.error(
@@ -54,25 +63,27 @@ def search(
         Musixmatch(lang=lang, enhanced=enhanced),
         Lrclib(),
         # Deezer(),
-        NetEase(),
+        NetEase(duration=duration, max_deviation=max_deviation),
         Megalobiz(),
         Genius(),
+        Tencent(duration=duration, max_deviation=max_deviation),
     ]
 
-    for provider in _select_providers(_providers, providers):
+    tasks = []
+
+    async def get_lrc_from_provider(provider):
         logger.debug(f"Looking for an LRC on {provider}")
         try:
-            lrc.update(provider.get_lrc(search_term))
+            return await provider.get_lrc(search_term)
         except Exception as e:
             logger.error(f"An error occurred while searching for an LRC on {provider}")
             logger.error(e)
+            traceback.print_exc()
             if lang:
                 logger.error("Aborting, since `lang` is only supported by Musixmatch")
                 return None
-            continue
         if lrc.is_preferred(target_type):
             logger.info(f'Lyrics found for "{search_term}" on {provider}')
-            break
         elif lrc.is_acceptable(target_type):
             logger.info(
                 f"Found plaintext lyrics on {provider}, but continuing search for synced lyrics"
@@ -81,6 +92,14 @@ def search(
             logger.debug(
                 f"No suitable lyrics found on {provider}, continuing search..."
             )
+
+    for provider in _select_providers(_providers, providers):
+        tasks.append(get_lrc_from_provider(provider))
+
+    results = await asyncio.gather(*tasks)
+    for lyrics in results:
+        lrc.update(lyrics)
+
     if not lrc.is_acceptable(target_type):
         logger.info(f'No suitable lyrics found for "{search_term}" :(')
         return None

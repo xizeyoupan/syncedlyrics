@@ -16,23 +16,23 @@ class Lrclib(LRCProvider):
     def __init__(self) -> None:
         super().__init__()
 
-    def get_lrc_by_id(self, track_id: str) -> Optional[Lyrics]:
+    async def get_lrc_by_id(self, track_id: str) -> Optional[Lyrics]:
         url = self.LRC_ENDPOINT + track_id
-        r = self.session.get(url)
+        r = await self.session.get(url)
         if not r.ok:
             return None
-        track = r.json()
+        track = await r.json()
         lrc = Lyrics()
         lrc.synced = track.get("syncedLyrics")
         lrc.unsynced = track.get("plainLyrics")
         return lrc
 
-    def get_lrc(self, search_term: str) -> Optional[Lyrics]:
+    async def get_lrc(self, search_term: str) -> Optional[Lyrics]:
         url = self.SEARCH_ENDPOINT
-        r = self.session.get(url, params={"q": search_term})
+        r = await self.session.get(url, params={"q": search_term})
         if not r.ok:
             return None
-        tracks = r.json()
+        tracks = await r.json()
         if not tracks:
             return None
         tracks = sort_results(
@@ -47,4 +47,4 @@ class Lrclib(LRCProvider):
         #         break
         # if not _id:
         #     return None
-        return self.get_lrc_by_id(_id)
+        return await self.get_lrc_by_id(_id)
