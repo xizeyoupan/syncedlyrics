@@ -1,4 +1,4 @@
-# syncedlyrics
+# syncedlyrics_aio
  Get an LRC format (synchronized) lyrics for your music **with aiohttp support**.
  
  [![Downloads](https://static.pepy.tech/badge/syncedlyrics_aio/month)](https://pepy.tech/project/syncedlyrics_aio)
